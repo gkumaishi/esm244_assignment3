@@ -1,0 +1,41 @@
+---
+title: "Task 3"
+author: "Grace Kumaishi"
+date: "2/17/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(tidytext)
+library(textdata)
+library(pdftools)
+library(ggwordcloud)
+library(here)
+```
+
+```{r}
+little_women_text <- pdf_text(here("little_women.pdf")) 
+```
+
+```{r}
+little_women_tidy <- data.frame(little_women_text) %>% 
+  mutate(text_full = str_split(little_women_text, pattern = "\\n")) %>% 
+  unnest(text_full) %>% 
+  mutate(text_full = str_trim(text_full)) %>% 
+  slice(-(1:101)) %>% 
+  mutate(chapter = case_when(
+    str_detect(text_full, pattern = "CHAPTER") ~text_full,
+    TRUE ~ NA_character_
+  )) %>% 
+  fill(chapter) %>% 
+  mutate(text_full = str_squish(text_full)) %>% 
+  mutate(text_full = str_trim(text_full)) %>% 
+  mutate(chapter = str_squish(chapter)) 
+```
+
+```{r}
+
+```
+

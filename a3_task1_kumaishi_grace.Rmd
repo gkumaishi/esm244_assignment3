@@ -42,7 +42,7 @@ tm_shape(ca_subset) +
   tm_dots(col = "blue")
 ```
 
-### Static chloropleth map
+### 2) Static chloropleth map
 ```{r}
 #inland_oil_spill <- oil_spill %>% 
   #filter(inlandmari == "Inland") %>% 
@@ -62,4 +62,4 @@ ggplot(data = inland_spill_counts) +
   theme_minimal() +
   labs(fill = "Number of inland oil spills")
 ```
-
+### Citations:
