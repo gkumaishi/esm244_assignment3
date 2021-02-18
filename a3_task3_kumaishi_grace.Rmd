@@ -23,19 +23,39 @@ little_women_text <- pdf_text(here("little_women.pdf"))
 little_women_tidy <- data.frame(little_women_text) %>% 
   mutate(text_full = str_split(little_women_text, pattern = "\\n")) %>% 
   unnest(text_full) %>% 
-  mutate(text_full = str_trim(text_full)) %>% 
+  mutate(text_full = str_trim(text_full)) 
+
+little_women_df <- little_women_tidy %>% 
   slice(-(1:101)) %>% 
   mutate(chapter = case_when(
     str_detect(text_full, pattern = "CHAPTER") ~text_full,
     TRUE ~ NA_character_
   )) %>% 
   fill(chapter) %>% 
-  mutate(text_full = str_squish(text_full)) %>% 
-  mutate(text_full = str_trim(text_full)) %>% 
-  mutate(chapter = str_squish(chapter)) 
+  mutate(text_full = str_squish(text_full)) %>% # Get rid of excess inside space in text_full
+  mutate(text_full = str_trim(text_full)) %>% # Get rid of excess outside space
+  mutate(chapter = str_squish(chapter)) %>% 
+  mutate(chapter = str_remove_all(as.character(chapter), "\\.")) %>% # remove "." after roman numerals
+  separate(col = chapter, into = c("ch", "no"), sep = " ") %>% 
+  mutate(chapter = as.numeric(as.roman(no))) %>% # Not sure how to fix this??
+  replace_na(list(chapter = 18)) # Replace NAs with 18
 ```
 
 ```{r}
+little_women_tokens <- little_women_df %>% 
+  unnest_tokens(word, text_full) %>% 
+  dplyr::select(-little_women_text)
 
+little_women_wordcount <- little_women_tokens %>% 
+  count(chapter, word)
+```
+
+```{r}
+# Remove all stop words
+little_women_nonstop_words <- little_women_tokens %>% 
+  anti_join(stop_words)
+
+nonstop_counts <- little_women_nonstop_words %>% 
+  count(chapter, word)
 ```
 
