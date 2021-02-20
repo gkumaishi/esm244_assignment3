@@ -16,10 +16,12 @@ library(here)
 ```
 
 ```{r}
+# Read in the data
 little_women_text <- pdf_text(here("little_women.pdf")) 
 ```
 
 ```{r}
+# Wrangling!
 little_women_tidy <- data.frame(little_women_text) %>% 
   mutate(text_full = str_split(little_women_text, pattern = "\\n")) %>% 
   unnest(text_full) %>% 
@@ -42,6 +44,7 @@ little_women_df <- little_women_tidy %>%
 ```
 
 ```{r}
+# Get word counts by chapter
 little_women_tokens <- little_women_df %>% 
   unnest_tokens(word, text_full) %>% 
   dplyr::select(-little_women_text)
@@ -58,4 +61,79 @@ little_women_nonstop_words <- little_women_tokens %>%
 nonstop_counts <- little_women_nonstop_words %>% 
   count(chapter, word)
 ```
+
+```{r}
+# Find top 5 words
+top_5_words <- nonstop_counts %>% 
+  filter(chapter == 1:15) %>% # filter for first 15 chapters
+  group_by(chapter) %>% 
+  arrange(-n) %>% 
+  slice(1:5)
+
+# Visualize
+ggplot(data = top_5_words, aes(x = word, y = n)) +
+  geom_col() +
+  facet_wrap(~chapter, scales = "free") +
+  coord_flip()
+```
+
+```{r}
+# Select top 50 words
+ch5_top50 <- nonstop_counts %>% 
+  filter(chapter == 5) %>% 
+  arrange(-n) %>% 
+  slice(1:50)
+
+# Create wordcloud
+ch5_cloud <- ggplot(data = ch5_top50, aes(label = word)) +
+  geom_text_wordcloud(aes(color = n, size = n), shape = "circle") +
+  scale_size_area(max_size = 10) +
+  scale_color_gradientn(colors = "darkgreen", "blue", "purple") +
+  theme_minimal()
+
+ch5_cloud
+```
+
+```{r}
+# Sentiment analysis using afinn lexicon
+afinn_pos <- get_sentiments("afinn") %>% 
+  filter(value > 2)
+
+little_women_afinn <- little_women_nonstop_words %>% 
+  inner_join(get_sentiments("afinn"))
+
+afinn_counts <- little_women_afinn %>% 
+  count(chapter, value) 
+
+afinn_means <- little_women_afinn %>% 
+  group_by(chapter) %>% 
+  summarize(mean_afinn = mean(value))
+
+ggplot(data = afinn_means,
+       aes(x = chapter, y = mean_afinn)) +
+  geom_col() +
+  coord_flip()
+```
+
+```{r}
+# Sentiment analysis using NRC lexicon
+little_women_nrc <- little_women_nonstop_words %>% 
+  inner_join(get_sentiments("nrc"))
+
+little_women_nrc_counts <- little_women_nrc %>% 
+  count(chapter, sentiment)
+
+ggplot(data = little_women_nrc_counts, aes(x = sentiment, y = n)) +
+  geom_col() +
+  facet_wrap(~chapter) +
+  coord_flip()
+```
+
+
+### Citation: 
+[Alcott, Louisa May, 1832-1888. Little Women. Melbourne ; London ; Baltimore :Penguin Books, 1953](https://archive.org/details/littlewomenormeg00alcoiala/page/216/mode/2up)
+
+
+
+
 
