@@ -18,7 +18,7 @@ library(tmap)
 
 ```{r}
 # Read in the data:
-oil_spill <- read_sf(here("data", "oil_spill", "Oil_Spill_Incident_Tracking_%5Bds394%5D.shp")) %>% 
+oil_spill <- read_sf(here("data", "oil_spill", "Oil_Spill_Incident_Tracking_%5Bds394%5D.shp")) %>%
   clean_names()
 
 ca_counties <- read_sf(here("data", "ca_counties", "CA_Counties_TIGER2016.shp"))
@@ -32,7 +32,7 @@ ca_subset <- ca_counties %>%
 # oil_spill %>%  st_crs()
 ```
 
-### 1) Interactive map: oil spill events
+### 1) Interactive map
 ```{r}
 # Set the viewing mode to interactive:
 tmap_mode(mode = "view")
@@ -44,13 +44,10 @@ tm_shape(ca_subset) +
   tm_dots(col = "royalblue4")
 ```
 
-### 2) Static chloropleth map: spill events per county
-```{r}
-#inland_oil_spill <- oil_spill %>% 
-  #filter(inlandmari == "Inland") %>% 
-  #group_by(localecoun) %>% 
-  #count(localecoun)
+**Map 1:** Oil spill events in California.
 
+### 2) Static chloropleth map
+```{r}
 # Join!
 inland_spill_county <- ca_subset %>% 
   st_join(oil_spill)
@@ -62,8 +59,12 @@ ggplot(data = inland_spill_counts) +
   geom_sf(aes(fill = n), color = "white", size = 0.1) +
   scale_fill_gradientn(colors = c("lightgray", "royalblue1", "royalblue4")) +
   theme_minimal() +
-  labs(fill = "Number of inland oil spills")
+  labs(fill = "Number of inland oil spills",
+       x = "Latitude",
+       y = "Longitude")
 ```
 
+**Map 2:** Spill events per county. 
+
 ### Citation:
-[CA DFW Oil Spill Incident Tracking [ds394]. Edition 2008. Published 2009-07-23.](https://map.dfg.ca.gov/metadata/ds0394.html)
+[Oil Spill layers courtesty of CA DFW Oil Spill Incident Tracking [ds394]. Edition 2008. Published 2009-07-23.](https://map.dfg.ca.gov/metadata/ds0394.html) [California county layers courtesy of California Department of Technologies. CA Geographic Boundaries. US Census Bureau's 2016 MAF/TIGER database.](https://data.ca.gov/dataset/ca-geographic-boundaries)
